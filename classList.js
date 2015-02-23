@@ -54,7 +54,7 @@ if ('document' in self) {
 			}
 
 			function ClassList(elem) {
-				var trimmedClasses = strTrim.call(elem.getAttribute('class') || ''),
+				var trimmedClasses = strTrim.call(elem.className || ''),
 						classes = trimmedClasses ? trimmedClasses.split(/\s+/) : [],
 						i = 0,
 						len = classes.length;
@@ -64,7 +64,7 @@ if ('document' in self) {
 				}
 
 				this._updateClassName = function() {
-					elem.setAttribute('class', this.toString());
+					elem.className = this.toString();
 				};
 			}
 
