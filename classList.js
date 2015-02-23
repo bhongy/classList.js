@@ -32,28 +32,32 @@ if ('document' in self) {
 					},
 
 					checkTokenAndGetIndex = function(classList, token) {
+
 						if (token === '') {
 							throw new DOMEx(
 								'SYNTAX_ERR', 'An invalid or illegal string was specified'
 							);
 						}
+
 						if (/\s/.test(token)) {
 							throw new DOMEx(
 								'INVALID_CHARACTER_ERR', 'String contains an invalid character'
 							);
 						}
+
 						return arrIndexOf.call(classList, token);
 					},
 
 					ClassList = function(elem) {
-						var
-							trimmedClasses = strTrim.call(elem.getAttribute('class') || ''),
-							classes = trimmedClasses ? trimmedClasses.split(/\s+/) : [],
-							i = 0,
-							len = classes.length;
+						var trimmedClasses = strTrim.call(elem.getAttribute('class') || ''),
+								classes = trimmedClasses ? trimmedClasses.split(/\s+/) : [],
+								i = 0,
+								len = classes.length;
+
 						for (; i < len; i++) {
 							this.push(classes[i]);
 						}
+
 						this._updateClassName = function() {
 							elem.setAttribute('class', this.toString());
 						};
