@@ -1,15 +1,11 @@
-/*
- * classList.js: Cross-browser full element.classList implementation.
- * 2014-12-13
- *
- * By Eli Grey, http://eligrey.com
- * Public Domain.
- * NO WARRANTY EXPRESSED OR IMPLIED. USE AT YOUR OWN RISK.
+/**
+ * Cross-browser full element.classList implementation for IE9+.
+ * Forked from Eli Grey classList.js 2014-12-13
  */
 
 /*global self, document, DOMException */
 
-/*! @source http://purl.eligrey.com/github/classList.js/blob/master/classList.js */
+/*! @source https://github.com/bhongy/classList.js */
 
 if ("document" in self) {
 
