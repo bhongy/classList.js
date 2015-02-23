@@ -46,6 +46,7 @@ if ("document" in self) {
 					}
 					return arrIndexOf.call(classList, token);
 				},
+
 				ClassList = function(elem) {
 					var
 						trimmedClasses = strTrim.call(elem.getAttribute("class") || ""),
@@ -59,10 +60,13 @@ if ("document" in self) {
 						elem.setAttribute("class", this.toString());
 					};
 				},
+
 				classListProto = ClassList[protoProp] = [],
+
 				classListGetter = function() {
 					return new ClassList(this);
 				};
+
 			// Most DOMException implementations don't allow calling DOMException's toString()
 			// on non-DOMExceptions. Error's toString() is sufficient here.
 			DOMEx[protoProp] = Error[protoProp];
