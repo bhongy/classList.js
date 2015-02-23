@@ -7,217 +7,215 @@
 
 /*! @source https://github.com/bhongy/classList.js */
 
-if ('document' in self) {
+// Full polyfill for browsers with no classList support
+function runCorePolyfill(view) {
+	'use strict';
 
-	// Full polyfill for browsers with no classList support
-	if (!('classList' in document.createElement('_'))) {
+	if (!('Element' in view)) return;
 
-		(function(view) {
+	var classListProp = 'classList',
+			elemCtrProto = view.Element.prototype,
+			objCtr = Object,
+			strTrim = String.prototype.trim,
+			arrIndexOf = Array.prototype.indexOf,
+			classListProto = ClassList.prototype = [];
+			
+	// Vendors: please allow content code to instantiate DOMExceptions
+	function DOMEx(type, message) {
+		this.name = type;
+		this.code = DOMException[type];
+		this.message = message;
+	}
 
-			'use strict';
+	// Most DOMException implementations don't allow calling DOMException's toString()
+	// on non-DOMExceptions. Error's toString() is sufficient here.
+	DOMEx.prototype = Error.prototype;
 
-			if (!('Element' in view)) return;
+	function checkTokenAndGetIndex(classList, token) {
 
-			var classListProp = 'classList',
-					elemCtrProto = view.Element.prototype,
-					objCtr = Object,
-					strTrim = String.prototype.trim,
-					arrIndexOf = Array.prototype.indexOf,
-					classListProto = ClassList.prototype = [];
-					
-			// Vendors: please allow content code to instantiate DOMExceptions
-			function DOMEx(type, message) {
-				this.name = type;
-				this.code = DOMException[type];
-				this.message = message;
+		if (token === '') {
+			throw new DOMEx(
+				'SYNTAX_ERR', 'An invalid or illegal string was specified'
+			);
+		}
+
+		if (/\s/.test(token)) {
+			throw new DOMEx(
+				'INVALID_CHARACTER_ERR', 'String contains an invalid character'
+			);
+		}
+
+		return arrIndexOf.call(classList, token);
+	}
+
+	function ClassList(elem) {
+		var trimmedClasses = strTrim.call(elem.className || ''),
+				classes = trimmedClasses ? trimmedClasses.split(/\s+/) : [],
+				i = 0,
+				len = classes.length;
+
+		for (; i < len; i++) {
+			this.push(classes[i]);
+		}
+
+		this._updateClassName = function() {
+			elem.className = this.toString();
+		};
+	}
+
+	function classListGetter() {
+		return new ClassList(this);
+	}
+
+	classListProto.item = function(i) {
+		return this[i] || null;
+	};
+
+	classListProto.contains = function(token) {
+		token += '';
+		return checkTokenAndGetIndex(this, token) !== -1;
+	};
+
+	classListProto.add = function() {
+		var tokens = arguments,
+				i = 0,
+				l = tokens.length,
+				token, updated = false;
+
+		do {
+			token = tokens[i] + '';
+
+			if (checkTokenAndGetIndex(this, token) === -1) {
+				this.push(token);
+				updated = true;
 			}
+		} while (++i < l);
 
-			// Most DOMException implementations don't allow calling DOMException's toString()
-			// on non-DOMExceptions. Error's toString() is sufficient here.
-			DOMEx.prototype = Error.prototype;
+		if (updated) {
+			this._updateClassName();
+		}
+	};
 
-			function checkTokenAndGetIndex(classList, token) {
+	classListProto.remove = function() {
+		var tokens = arguments,
+				i = 0,
+				l = tokens.length,
+				token, updated = false,
+				index;
 
-				if (token === '') {
-					throw new DOMEx(
-						'SYNTAX_ERR', 'An invalid or illegal string was specified'
-					);
+		do {
+			token = tokens[i] + '';
+			index = checkTokenAndGetIndex(this, token);
+
+			while (index !== -1) {
+				this.splice(index, 1);
+				updated = true;
+				index = checkTokenAndGetIndex(this, token);
+			}
+		} while (++i < l);
+
+		if (updated) {
+			this._updateClassName();
+		}
+	};
+
+	classListProto.toggle = function(token, force) {
+		token += '';
+
+		var result = this.contains(token),
+				method = result ?
+									force !== true && 'remove' :
+									force !== false && 'add';
+
+		if (method) {
+			this[method](token);
+		}
+
+		if (force === true || force === false) {
+			return force;
+		} else {
+			return !result;
+		}
+	};
+
+	classListProto.toString = function() {
+		return this.join(' ');
+	};
+
+	if (objCtr.defineProperty) {
+		var classListPropDesc = {
+			get: classListGetter,
+			enumerable: true,
+			configurable: true
+		};
+
+		try {
+			objCtr.defineProperty(elemCtrProto, classListProp, classListPropDesc);
+		} catch (ex) { // IE 8 doesn't support enumerable:true
+			if (ex.number === -0x7FF5EC54) {
+				classListPropDesc.enumerable = false;
+				objCtr.defineProperty(elemCtrProto, classListProp, classListPropDesc);
+			}
+		}
+	} else if (objCtr.prototype.__defineGetter__) {
+		elemCtrProto.__defineGetter__(classListProp, classListGetter);
+	}
+}  // END: function runCorePolyfill() { ... }
+
+// There is full or partial native classList support, so just check if we need
+// to normalize the add/remove and toggle APIs.
+function runPartialPolyfill() {
+	'use strict';
+
+	var testElement = document.createElement('_');
+
+	testElement.classList.add('c1', 'c2');
+
+	// Polyfill for IE 10/11 and Firefox <26, where classList.add and
+	// classList.remove exist but support only one argument at a time.
+	if (!testElement.classList.contains('c2')) {
+		var createMethod = function(method) {
+			var original = DOMTokenList.prototype[method];
+
+			DOMTokenList.prototype[method] = function(token) {
+				var i, len = arguments.length;
+
+				for (i = 0; i < len; i++) {
+					token = arguments[i];
+					original.call(this, token);
 				}
-
-				if (/\s/.test(token)) {
-					throw new DOMEx(
-						'INVALID_CHARACTER_ERR', 'String contains an invalid character'
-					);
-				}
-
-				return arrIndexOf.call(classList, token);
-			}
-
-			function ClassList(elem) {
-				var trimmedClasses = strTrim.call(elem.className || ''),
-						classes = trimmedClasses ? trimmedClasses.split(/\s+/) : [],
-						i = 0,
-						len = classes.length;
-
-				for (; i < len; i++) {
-					this.push(classes[i]);
-				}
-
-				this._updateClassName = function() {
-					elem.className = this.toString();
-				};
-			}
-
-			function classListGetter() {
-				return new ClassList(this);
-			}
-
-			classListProto.item = function(i) {
-				return this[i] || null;
 			};
+		};
+		createMethod('add');
+		createMethod('remove');
+	}
 
-			classListProto.contains = function(token) {
-				token += '';
-				return checkTokenAndGetIndex(this, token) !== -1;
-			};
+	testElement.classList.toggle('c3', false);
 
-			classListProto.add = function() {
-				var tokens = arguments,
-						i = 0,
-						l = tokens.length,
-						token, updated = false;
+	// Polyfill for IE 10 and Firefox <24, where classList.toggle does not
+	// support the second argument.
+	if (testElement.classList.contains('c3')) {
+		var _toggle = DOMTokenList.prototype.toggle;
 
-				do {
-					token = tokens[i] + '';
-
-					if (checkTokenAndGetIndex(this, token) === -1) {
-						this.push(token);
-						updated = true;
-					}
-				} while (++i < l);
-
-				if (updated) {
-					this._updateClassName();
-				}
-			};
-
-			classListProto.remove = function() {
-				var tokens = arguments,
-						i = 0,
-						l = tokens.length,
-						token, updated = false,
-						index;
-
-				do {
-					token = tokens[i] + '';
-					index = checkTokenAndGetIndex(this, token);
-
-					while (index !== -1) {
-						this.splice(index, 1);
-						updated = true;
-						index = checkTokenAndGetIndex(this, token);
-					}
-				} while (++i < l);
-
-				if (updated) {
-					this._updateClassName();
-				}
-			};
-
-			classListProto.toggle = function(token, force) {
-				token += '';
-
-				var result = this.contains(token),
-						method = result ?
-											force !== true && 'remove' :
-											force !== false && 'add';
-
-				if (method) {
-					this[method](token);
-				}
-
-				if (force === true || force === false) {
-					return force;
-				} else {
-					return !result;
-				}
-			};
-
-			classListProto.toString = function() {
-				return this.join(' ');
-			};
-
-			if (objCtr.defineProperty) {
-				var classListPropDesc = {
-					get: classListGetter,
-					enumerable: true,
-					configurable: true
-				};
-
-				try {
-					objCtr.defineProperty(elemCtrProto, classListProp, classListPropDesc);
-				} catch (ex) { // IE 8 doesn't support enumerable:true
-					if (ex.number === -0x7FF5EC54) {
-						classListPropDesc.enumerable = false;
-						objCtr.defineProperty(elemCtrProto, classListProp, classListPropDesc);
-					}
-				}
-			} else if (objCtr.prototype.__defineGetter__) {
-				elemCtrProto.__defineGetter__(classListProp, classListGetter);
+		DOMTokenList.prototype.toggle = function(token, force) {
+			if (1 in arguments && !this.contains(token) === !force) {
+				return force;
+			} else {
+				return _toggle.call(this, token);
 			}
-
-		}(self));
-
-	} else {
-		// There is full or partial native classList support, so just check if we need
-		// to normalize the add/remove and toggle APIs.
-
-		(function() {
-			'use strict';
-
-			var testElement = document.createElement('_');
-
-			testElement.classList.add('c1', 'c2');
-
-			// Polyfill for IE 10/11 and Firefox <26, where classList.add and
-			// classList.remove exist but support only one argument at a time.
-			if (!testElement.classList.contains('c2')) {
-				var createMethod = function(method) {
-					var original = DOMTokenList.prototype[method];
-
-					DOMTokenList.prototype[method] = function(token) {
-						var i, len = arguments.length;
-
-						for (i = 0; i < len; i++) {
-							token = arguments[i];
-							original.call(this, token);
-						}
-					};
-				};
-				createMethod('add');
-				createMethod('remove');
-			}
-
-			testElement.classList.toggle('c3', false);
-
-			// Polyfill for IE 10 and Firefox <24, where classList.toggle does not
-			// support the second argument.
-			if (testElement.classList.contains('c3')) {
-				var _toggle = DOMTokenList.prototype.toggle;
-
-				DOMTokenList.prototype.toggle = function(token, force) {
-					if (1 in arguments && !this.contains(token) === !force) {
-						return force;
-					} else {
-						return _toggle.call(this, token);
-					}
-				};
-
-			}
-
-			testElement = null;
-		}());
+		};
 
 	}
 
+	testElement = null;
+} // END: function runPartialPolyfill() { ... }
+
+
+
+if ('document' in self) {
+	if (!('classList' in document.createElement('_'))) {
+		runCorePolyfill(self);
+	} else {
+		runPartialPolyfill();
+	}
 }
