@@ -32,6 +32,10 @@ if ('document' in self) {
 				this.message = message;
 			}
 
+			// Most DOMException implementations don't allow calling DOMException's toString()
+			// on non-DOMExceptions. Error's toString() is sufficient here.
+			DOMEx.prototype = Error.prototype;
+
 			function checkTokenAndGetIndex(classList, token) {
 
 				if (token === '') {
@@ -67,10 +71,6 @@ if ('document' in self) {
 			function classListGetter() {
 				return new ClassList(this);
 			}
-
-			// Most DOMException implementations don't allow calling DOMException's toString()
-			// on non-DOMExceptions. Error's toString() is sufficient here.
-			DOMEx.prototype = Error.prototype;
 
 			classListProto.item = function(i) {
 				return this[i] || null;
