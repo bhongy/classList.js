@@ -82,19 +82,19 @@ if ('document' in self) {
 			};
 
 			classListProto.add = function() {
-				var
-					tokens = arguments,
-					i = 0,
-					l = tokens.length,
-					token, updated = false;
+				var tokens = arguments,
+						i = 0,
+						l = tokens.length,
+						token, updated = false;
+
 				do {
 					token = tokens[i] + '';
+
 					if (checkTokenAndGetIndex(this, token) === -1) {
 						this.push(token);
 						updated = true;
 					}
-				}
-				while (++i < l);
+				} while (++i < l);
 
 				if (updated) {
 					this._updateClassName();
@@ -102,22 +102,22 @@ if ('document' in self) {
 			};
 
 			classListProto.remove = function() {
-				var
-					tokens = arguments,
-					i = 0,
-					l = tokens.length,
-					token, updated = false,
-					index;
+				var tokens = arguments,
+						i = 0,
+						l = tokens.length,
+						token, updated = false,
+						index;
+
 				do {
 					token = tokens[i] + '';
 					index = checkTokenAndGetIndex(this, token);
+
 					while (index !== -1) {
 						this.splice(index, 1);
 						updated = true;
 						index = checkTokenAndGetIndex(this, token);
 					}
-				}
-				while (++i < l);
+				} while (++i < l);
 
 				if (updated) {
 					this._updateClassName();
@@ -127,11 +127,10 @@ if ('document' in self) {
 			classListProto.toggle = function(token, force) {
 				token += '';
 
-				var
-					result = this.contains(token),
-					method = result ?
-					force !== true && 'remove' :
-					force !== false && 'add';
+				var result = this.contains(token),
+						method = result ?
+											force !== true && 'remove' :
+											force !== false && 'add';
 
 				if (method) {
 					this[method](token);
@@ -154,6 +153,7 @@ if ('document' in self) {
 					enumerable: true,
 					configurable: true
 				};
+
 				try {
 					objCtr.defineProperty(elemCtrProto, classListProp, classListPropDesc);
 				} catch (ex) { // IE 8 doesn't support enumerable:true
