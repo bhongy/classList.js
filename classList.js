@@ -23,22 +23,8 @@ if ("document" in self) {
 				protoProp = "prototype",
 				elemCtrProto = view.Element[protoProp],
 				objCtr = Object,
-
-				strTrim = String[protoProp].trim || function() {
-					return this.replace(/^\s+|\s+$/g, "");
-				},
-
-				arrIndexOf = Array[protoProp].indexOf || function(item) {
-					var
-						i = 0,
-						len = this.length;
-					for (; i < len; i++) {
-						if (i in this && this[i] === item) {
-							return i;
-						}
-					}
-					return -1;
-				},
+				strTrim = String[protoProp].trim,
+				arrIndexOf = Array[protoProp].indexOf,
 				
 				// Vendors: please allow content code to instantiate DOMExceptions
 				DOMEx = function(type, message) {
