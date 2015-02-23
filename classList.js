@@ -69,13 +69,16 @@ if ('document' in self) {
 			// Most DOMException implementations don't allow calling DOMException's toString()
 			// on non-DOMExceptions. Error's toString() is sufficient here.
 			DOMEx[protoProp] = Error[protoProp];
+
 			classListProto.item = function(i) {
 				return this[i] || null;
 			};
+
 			classListProto.contains = function(token) {
 				token += '';
 				return checkTokenAndGetIndex(this, token) !== -1;
 			};
+
 			classListProto.add = function() {
 				var
 					tokens = arguments,
@@ -95,6 +98,7 @@ if ('document' in self) {
 					this._updateClassName();
 				}
 			};
+
 			classListProto.remove = function() {
 				var
 					tokens = arguments,
@@ -117,6 +121,7 @@ if ('document' in self) {
 					this._updateClassName();
 				}
 			};
+
 			classListProto.toggle = function(token, force) {
 				token += '';
 
@@ -136,6 +141,7 @@ if ('document' in self) {
 					return !result;
 				}
 			};
+
 			classListProto.toString = function() {
 				return this.join(' ');
 			};
