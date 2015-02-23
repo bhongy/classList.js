@@ -23,51 +23,50 @@ if ('document' in self) {
 					objCtr = Object,
 					strTrim = String.prototype.trim,
 					arrIndexOf = Array.prototype.indexOf,
+					classListProto = ClassList.prototype = [];
 					
-					// Vendors: please allow content code to instantiate DOMExceptions
-					DOMEx = function(type, message) {
-						this.name = type;
-						this.code = DOMException[type];
-						this.message = message;
-					},
+			// Vendors: please allow content code to instantiate DOMExceptions
+			function DOMEx(type, message) {
+				this.name = type;
+				this.code = DOMException[type];
+				this.message = message;
+			}
 
-					checkTokenAndGetIndex = function(classList, token) {
+			function checkTokenAndGetIndex(classList, token) {
 
-						if (token === '') {
-							throw new DOMEx(
-								'SYNTAX_ERR', 'An invalid or illegal string was specified'
-							);
-						}
+				if (token === '') {
+					throw new DOMEx(
+						'SYNTAX_ERR', 'An invalid or illegal string was specified'
+					);
+				}
 
-						if (/\s/.test(token)) {
-							throw new DOMEx(
-								'INVALID_CHARACTER_ERR', 'String contains an invalid character'
-							);
-						}
+				if (/\s/.test(token)) {
+					throw new DOMEx(
+						'INVALID_CHARACTER_ERR', 'String contains an invalid character'
+					);
+				}
 
-						return arrIndexOf.call(classList, token);
-					},
+				return arrIndexOf.call(classList, token);
+			}
 
-					ClassList = function(elem) {
-						var trimmedClasses = strTrim.call(elem.getAttribute('class') || ''),
-								classes = trimmedClasses ? trimmedClasses.split(/\s+/) : [],
-								i = 0,
-								len = classes.length;
+			function ClassList(elem) {
+				var trimmedClasses = strTrim.call(elem.getAttribute('class') || ''),
+						classes = trimmedClasses ? trimmedClasses.split(/\s+/) : [],
+						i = 0,
+						len = classes.length;
 
-						for (; i < len; i++) {
-							this.push(classes[i]);
-						}
+				for (; i < len; i++) {
+					this.push(classes[i]);
+				}
 
-						this._updateClassName = function() {
-							elem.setAttribute('class', this.toString());
-						};
-					},
+				this._updateClassName = function() {
+					elem.setAttribute('class', this.toString());
+				};
+			}
 
-					classListProto = ClassList.prototype = [],
-
-					classListGetter = function() {
-						return new ClassList(this);
-					};
+			function classListGetter() {
+				return new ClassList(this);
+			}
 
 			// Most DOMException implementations don't allow calling DOMException's toString()
 			// on non-DOMExceptions. Error's toString() is sufficient here.
