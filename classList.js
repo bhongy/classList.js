@@ -18,54 +18,53 @@ if ("document" in self) {
 
 			if (!('Element' in view)) return;
 
-			var
-				classListProp = "classList",
-				protoProp = "prototype",
-				elemCtrProto = view.Element[protoProp],
-				objCtr = Object,
-				strTrim = String[protoProp].trim,
-				arrIndexOf = Array[protoProp].indexOf,
-				
-				// Vendors: please allow content code to instantiate DOMExceptions
-				DOMEx = function(type, message) {
-					this.name = type;
-					this.code = DOMException[type];
-					this.message = message;
-				},
+			var classListProp = "classList",
+					protoProp = "prototype",
+					elemCtrProto = view.Element[protoProp],
+					objCtr = Object,
+					strTrim = String[protoProp].trim,
+					arrIndexOf = Array[protoProp].indexOf,
+					
+					// Vendors: please allow content code to instantiate DOMExceptions
+					DOMEx = function(type, message) {
+						this.name = type;
+						this.code = DOMException[type];
+						this.message = message;
+					},
 
-				checkTokenAndGetIndex = function(classList, token) {
-					if (token === "") {
-						throw new DOMEx(
-							"SYNTAX_ERR", "An invalid or illegal string was specified"
-						);
-					}
-					if (/\s/.test(token)) {
-						throw new DOMEx(
-							"INVALID_CHARACTER_ERR", "String contains an invalid character"
-						);
-					}
-					return arrIndexOf.call(classList, token);
-				},
+					checkTokenAndGetIndex = function(classList, token) {
+						if (token === "") {
+							throw new DOMEx(
+								"SYNTAX_ERR", "An invalid or illegal string was specified"
+							);
+						}
+						if (/\s/.test(token)) {
+							throw new DOMEx(
+								"INVALID_CHARACTER_ERR", "String contains an invalid character"
+							);
+						}
+						return arrIndexOf.call(classList, token);
+					},
 
-				ClassList = function(elem) {
-					var
-						trimmedClasses = strTrim.call(elem.getAttribute("class") || ""),
-						classes = trimmedClasses ? trimmedClasses.split(/\s+/) : [],
-						i = 0,
-						len = classes.length;
-					for (; i < len; i++) {
-						this.push(classes[i]);
-					}
-					this._updateClassName = function() {
-						elem.setAttribute("class", this.toString());
+					ClassList = function(elem) {
+						var
+							trimmedClasses = strTrim.call(elem.getAttribute("class") || ""),
+							classes = trimmedClasses ? trimmedClasses.split(/\s+/) : [],
+							i = 0,
+							len = classes.length;
+						for (; i < len; i++) {
+							this.push(classes[i]);
+						}
+						this._updateClassName = function() {
+							elem.setAttribute("class", this.toString());
+						};
+					},
+
+					classListProto = ClassList[protoProp] = [],
+
+					classListGetter = function() {
+						return new ClassList(this);
 					};
-				},
-
-				classListProto = ClassList[protoProp] = [],
-
-				classListGetter = function() {
-					return new ClassList(this);
-				};
 
 			// Most DOMException implementations don't allow calling DOMException's toString()
 			// on non-DOMExceptions. Error's toString() is sufficient here.
