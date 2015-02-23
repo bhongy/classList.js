@@ -19,11 +19,10 @@ if ('document' in self) {
 			if (!('Element' in view)) return;
 
 			var classListProp = 'classList',
-					protoProp = 'prototype',
-					elemCtrProto = view.Element[protoProp],
+					elemCtrProto = view.Element.prototype,
 					objCtr = Object,
-					strTrim = String[protoProp].trim,
-					arrIndexOf = Array[protoProp].indexOf,
+					strTrim = String.prototype.trim,
+					arrIndexOf = Array.prototype.indexOf,
 					
 					// Vendors: please allow content code to instantiate DOMExceptions
 					DOMEx = function(type, message) {
@@ -60,7 +59,7 @@ if ('document' in self) {
 						};
 					},
 
-					classListProto = ClassList[protoProp] = [],
+					classListProto = ClassList.prototype = [],
 
 					classListGetter = function() {
 						return new ClassList(this);
@@ -68,7 +67,7 @@ if ('document' in self) {
 
 			// Most DOMException implementations don't allow calling DOMException's toString()
 			// on non-DOMExceptions. Error's toString() is sufficient here.
-			DOMEx[protoProp] = Error[protoProp];
+			DOMEx.prototype = Error.prototype;
 
 			classListProto.item = function(i) {
 				return this[i] || null;
@@ -160,7 +159,7 @@ if ('document' in self) {
 						objCtr.defineProperty(elemCtrProto, classListProp, classListPropDesc);
 					}
 				}
-			} else if (objCtr[protoProp].__defineGetter__) {
+			} else if (objCtr.prototype.__defineGetter__) {
 				elemCtrProto.__defineGetter__(classListProp, classListGetter);
 			}
 
