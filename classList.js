@@ -169,42 +169,62 @@ function runPartialPolyfill() {
 
 	var testElement = document.createElement('_');
 
-	testElement.classList.add('c1', 'c2');
 
 	// Polyfill for IE 10/11 and Firefox <26, where classList.add and
 	// classList.remove exist but support only one argument at a time.
-	if (!testElement.classList.contains('c2')) {
-		var createMethod = function(method) {
-			var original = DOMTokenList.prototype[method];
 
-			DOMTokenList.prototype[method] = function(token) {
-				var i, len = arguments.length;
+	function createMethod(method) {
 
-				for (i = 0; i < len; i++) {
-					token = arguments[i];
-					original.call(this, token);
-				}
-			};
+		// classList is a type of DOMToketList (inherited)
+		var original = DOMTokenList.prototype[method];
+
+		DOMTokenList.prototype[method] = function(token) {
+			var i, len = arguments.length;
+
+			// iterate through arguments and call the original method
+			for (i = 0; i < len; i++) {
+				token = arguments[i];
+				original.call(this, token);
+			}
 		};
+	}
+
+	testElement.classList.add('c1', 'c2');
+
+	if ( !testElement.classList.contains('c2') ) {
 		createMethod('add');
 		createMethod('remove');
 	}
 
-	testElement.classList.toggle('c3', false);
 
 	// Polyfill for IE 10 and Firefox <24, where classList.toggle does not
 	// support the second argument.
-	if (testElement.classList.contains('c3')) {
+	
+	// The toggle method has an optional second argument that will force
+	// the class name to be added or removed based on the truthiness
+	// of the second argument.
+
+	testElement.classList.toggle('c3', false);
+
+	// if we still have 'c3' class, it means that .toggle works but
+	// does not support the second argument (force).
+	if ( testElement.classList.contains('c3') ) {
 		var _toggle = DOMTokenList.prototype.toggle;
 
 		DOMTokenList.prototype.toggle = function(token, force) {
-			if (1 in arguments && !this.contains(token) === !force) {
+			var hasSecondArgument = ( typeof arguments[1] !== 'undefined' );
+
+			// if we have class and force truthy OR do not have class
+			// and force falsy, do not do anything - just return the `force`
+			// Otherwise, toggle it.
+			// 
+			// *** use `==` to do type coercion - `force` check for truthiness
+			if ( hasSecondArgument && this.contains(token) == force ) {
 				return force;
 			} else {
 				return _toggle.call(this, token);
 			}
 		};
-
 	}
 
 	testElement = null;
