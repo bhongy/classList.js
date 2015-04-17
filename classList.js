@@ -1,6 +1,11 @@
 /**
  * Cross-browser full element.classList implementation for IE9+.
  * Forked from Eli Grey classList.js 2014-12-13
+ *
+ * -----
+ * Avoid using Minimal classList shim for IE 9 By Devon Govett
+ * (https://gist.github.com/devongovett/1381839) - gist rev: Nov 20, 2011
+ * There are some issues - e.g. className is not trimmed before being processed
  */
 
 /*global self, document, DOMException */
