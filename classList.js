@@ -236,7 +236,8 @@ function runPartialPolyfill() {
 } // END: function runPartialPolyfill() { ... }
 
 
-
+// `self` refers to `window` itself in Browsers
+// and refers to `global` object in other environments.
 if ('document' in self) {
 	if (!('classList' in document.createElement('_'))) {
 		runCorePolyfill(self);
