@@ -3,6 +3,9 @@
  * Forked from Eli Grey classList.js 2014-12-13
  *
  * -----
+ * 
+ * Note to self and my colleagues:
+ * 
  * Avoid using Minimal classList shim for IE 9 By Devon Govett
  * (https://gist.github.com/devongovett/1381839) - gist rev: Nov 20, 2011
  * There are some issues - e.g. className is not trimmed before being processed
@@ -13,22 +16,24 @@
 /*! @source https://github.com/bhongy/classList.js */
 
 // Full polyfill for browsers with no classList support
-function runCorePolyfill(view) {
+function runFullPolyfill(view) {
+
 	'use strict';
 
-	if (!('Element' in view)) return;
+	// in Browsers `view` should be `window` and it should have
+	// `window.Element` (function)  - else this code might be running
+	// on a non-browser environment - bail out.
+	if ( !( 'Element' in view ) ) return;
 
-	var classListProp = 'classList',
-			elemCtrProto = view.Element.prototype,
-			objCtr = Object,
-			strTrim = String.prototype.trim,
-			arrIndexOf = Array.prototype.indexOf,
+	var classListProp  = 'classList',
+			elemCtrProto   = view.Element.prototype,
+			objCtr         = Object,
 			classListProto = ClassList.prototype = [];
 			
 	// Vendors: please allow content code to instantiate DOMExceptions
 	function DOMEx(type, message) {
-		this.name = type;
-		this.code = DOMException[type];
+		this.name    = type;
+		this.code    = DOMException[ type ];
 		this.message = message;
 	}
 
@@ -38,32 +43,36 @@ function runCorePolyfill(view) {
 
 	function checkTokenAndGetIndex(classList, token) {
 
-		if (token === '') {
+		if ( token === '' ) {
 			throw new DOMEx(
-				'SYNTAX_ERR', 'An invalid or illegal string was specified'
+				'SYNTAX_ERR',
+				'An invalid or illegal string was specified'
 			);
 		}
 
-		if (/\s/.test(token)) {
+		if ( /\s/.test(token) ) {
 			throw new DOMEx(
-				'INVALID_CHARACTER_ERR', 'String contains an invalid character'
+				'INVALID_CHARACTER_ERR',
+				'String contains an invalid character'
 			);
 		}
 
-		return arrIndexOf.call(classList, token);
+		return Array.prototype.indexOf.call( classList, token );
 	}
 
 	function ClassList(elem) {
-		var trimmedClasses = strTrim.call(elem.className || ''),
+		var trimmedClasses = String.prototype.trim.call( elem.className || '' ),
 				classes = trimmedClasses ? trimmedClasses.split(/\s+/) : [],
 				i = 0,
 				len = classes.length;
 
-		for (; i < len; i++) {
-			this.push(classes[i]);
+		for ( ; i < len; i++ ) {
+			this.push( classes[i] );
 		}
 
 		this._updateClassName = function() {
+
+			// `this` is `classListProto` -> classList instance
 			elem.className = this.toString();
 		};
 	}
@@ -82,44 +91,50 @@ function runCorePolyfill(view) {
 	};
 
 	classListProto.add = function() {
-		var tokens = arguments,
+		var tokens  = arguments,
+				updated = false,
 				i = 0,
 				l = tokens.length,
-				token, updated = false;
+				token;
 
 		do {
 			token = tokens[i] + '';
 
-			if (checkTokenAndGetIndex(this, token) === -1) {
-				this.push(token);
+			if ( checkTokenAndGetIndex(this, token) === -1 ) {
+
+				// `this` is `classListProto` -> classList instance
+				this.push( token );
 				updated = true;
 			}
-		} while (++i < l);
+		} while ( ++i < l );
 
-		if (updated) {
+		if ( updated ) {
 			this._updateClassName();
 		}
 	};
 
 	classListProto.remove = function() {
-		var tokens = arguments,
+		var tokens  = arguments,
+				updated = false,
 				i = 0,
 				l = tokens.length,
-				token, updated = false,
+				token,
 				index;
 
 		do {
 			token = tokens[i] + '';
 			index = checkTokenAndGetIndex(this, token);
 
-			while (index !== -1) {
+			while ( index !== -1 ) {
+
+				// `this` is `classListProto` -> classList instance
 				this.splice(index, 1);
 				updated = true;
 				index = checkTokenAndGetIndex(this, token);
 			}
-		} while (++i < l);
+		} while ( ++i < l );
 
-		if (updated) {
+		if ( updated ) {
 			this._updateClassName();
 		}
 	};
@@ -127,15 +142,17 @@ function runCorePolyfill(view) {
 	classListProto.toggle = function(token, force) {
 		token += '';
 
+		// TODO: test this part, not sure it works properly
 		var result = this.contains(token),
 				method = result ?
-									force !== true && 'remove' :
-									force !== false && 'add';
+					force !== true && 'remove' :
+					force !== false && 'add';
 
-		if (method) {
-			this[method](token);
+		if ( method ) {
+			this[method]( token );
 		}
 
+		// handle return value when calling .toggle
 		if (force === true || force === false) {
 			return force;
 		} else {
@@ -147,29 +164,35 @@ function runCorePolyfill(view) {
 		return this.join(' ');
 	};
 
-	if (objCtr.defineProperty) {
+	if ( objCtr.defineProperty ) {
 		var classListPropDesc = {
-			get: classListGetter,
-			enumerable: true,
-			configurable: true
+			get          : classListGetter,
+			enumerable   : true,
+			configurable : true
 		};
 
+		// TODO:
+		//   remove try-catch if pass in modern browsers
+		//   since we do not support IE8
+		//   keep `objCtr.defineProperty( elemCtrProto, classListProp, classListPropDesc );`
+
 		try {
-			objCtr.defineProperty(elemCtrProto, classListProp, classListPropDesc);
-		} catch (ex) { // IE 8 doesn't support enumerable:true
-			if (ex.number === -0x7FF5EC54) {
+			objCtr.defineProperty( elemCtrProto, classListProp, classListPropDesc );
+		} catch (ex) { // IE 8 doesn't support enumerable: true
+			if ( ex.number === -0x7FF5EC54 ) {
 				classListPropDesc.enumerable = false;
-				objCtr.defineProperty(elemCtrProto, classListProp, classListPropDesc);
+				objCtr.defineProperty( elemCtrProto, classListProp, classListPropDesc );
 			}
 		}
-	} else if (objCtr.prototype.__defineGetter__) {
-		elemCtrProto.__defineGetter__(classListProp, classListGetter);
+	} else if ( objCtr.prototype.__defineGetter__ ) {
+		elemCtrProto.__defineGetter__( classListProp, classListGetter );
 	}
-}  // END: function runCorePolyfill() { ... }
+}  // END: function runFullPolyfill() { ... }
 
 // There is full or partial native classList support, so just check if we need
 // to normalize the add/remove and toggle APIs.
 function runPartialPolyfill() {
+
 	'use strict';
 
 	var testElement = document.createElement('_');
@@ -232,15 +255,18 @@ function runPartialPolyfill() {
 		};
 	}
 
-	testElement = null;
+	// should not need to clear value of `testElement`
+	// garbage collection should handle correctly
+	// testElement = null;
+
 } // END: function runPartialPolyfill() { ... }
 
 
 // `self` refers to `window` itself in Browsers
 // and refers to `global` object in other environments.
 if ('document' in self) {
-	if (!('classList' in document.createElement('_'))) {
-		runCorePolyfill(self);
+	if ( !( 'classList' in document.createElement('_') ) ) {
+		runFullPolyfill(self);
 	} else {
 		runPartialPolyfill();
 	}
