@@ -142,21 +142,31 @@ function runFullPolyfill(view) {
 	classListProto.toggle = function(token, force) {
 		token += '';
 
-		// TODO: test this part, not sure it works properly
-		var result = this.contains(token),
-				method = result ?
-					force !== true && 'remove' :
-					force !== false && 'add';
+		var hasClass = this.contains(token),
+				method;
+
+		// must check `force` against boolean, not truthiness/falsiness
+		// `force` false -> remove
+		// `force` true  -> add
+		if ( typeof force === 'boolean' ) {
+			method = force ? 'add' : 'remove';
+		} else {
+			method = hasClass ? 'remove' : 'add';
+		}
 
 		if ( method ) {
-			this[method]( token );
+			this[ method ]( token );
 		}
 
 		// handle return value when calling .toggle
+
+		// if `force` is used, return `force` as the result
 		if (force === true || force === false) {
 			return force;
+
+		// if `force` is not used, return the result
 		} else {
-			return !result;
+			return !hasClass;
 		}
 	};
 
