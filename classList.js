@@ -2,6 +2,9 @@
  * Cross-browser full element.classList implementation for IE9+.
  * Forked from Eli Grey classList.js 2014-12-13
  *
+ * @source https  : //github.com/bhongy/classList.js
+ * @last-modified : 2015-06-23
+ * 
  * -----
  * 
  * Note to self and my colleagues:
@@ -12,8 +15,6 @@
  */
 
 /*global self, document, DOMException */
-
-/*! @source https://github.com/bhongy/classList.js */
 
 // Full polyfill for browsers with no classList support
 function runFullPolyfill(view) {
